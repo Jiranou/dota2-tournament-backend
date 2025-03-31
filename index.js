@@ -64,7 +64,16 @@ app.post('/login', (req, res) => {
     }
   );
 });
+app.post('/cancel', async (req, res) => {
+  const { user_id } = req.body;
+  if (!user_id) return res.status(400).json({ error: '缺少 user_id' });
 
+  const player = await db.get('SELECT * FROM users WHERE id = ?', [user_id]);
+  if (!player) return res.status(404).json({ error: '用户不存在' });
+
+  await db.run(`DELETE FROM queue WHERE user_id = ?`, [user_id]);
+  res.json({ message: '已取消匹配' });
+});
 app.post('/queue', (req, res) => {
   const { user_id } = req.body;
   db.run(`INSERT INTO queue (user_id) VALUES (?)`, [user_id], (err) => {
